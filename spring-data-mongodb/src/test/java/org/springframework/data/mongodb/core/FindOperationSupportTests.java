@@ -26,6 +26,7 @@ import org.junit.Test;
 import org.springframework.dao.IncorrectResultSizeDataAccessException;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Field;
+import org.springframework.data.util.CloseableIterator;
 
 import com.mongodb.MongoClient;
 
@@ -100,8 +101,8 @@ public class FindOperationSupportTests {
 	@Test // DATAMONGO-1563
 	public void findAllByWithCollectionUsingMappingInformation() {
 
-		assertThat(template.query(Jedi.class).inCollection(STAR_WARS).findAllBy(query(where("name").is("luke"))))
-				.hasSize(1).hasOnlyElementsOfType(Jedi.class);
+		assertThat(template.query(Jedi.class).inCollection(STAR_WARS).findAllBy(query(where("name").is("luke")))).hasSize(1)
+				.hasOnlyElementsOfType(Jedi.class);
 	}
 
 	@Test // DATAMONGO-1563
@@ -130,6 +131,40 @@ public class FindOperationSupportTests {
 	@Test(expected = IncorrectResultSizeDataAccessException.class) // DATAMONGO-1563
 	public void findByTooManyResults() {
 		template.query(Person.class).findBy(query(where("firstname").in("han", "luke")));
+	}
+
+	@Test // DATAMONGO-1563
+	public void streamAll() {
+
+		try (CloseableIterator<Person> stream = template.query(Person.class).streamAll()) {
+			assertThat(stream).containsExactlyInAnyOrder(han, luke);
+		}
+	}
+
+	@Test // DATAMONGO-1563
+	public void streamAllWithCollection() {
+
+		try (CloseableIterator<Human> stream = template.query(Human.class).inCollection(STAR_WARS).streamAll()) {
+			assertThat(stream).hasSize(2);
+		}
+	}
+
+	@Test // DATAMONGO-1563
+	public void streamAllWithProjection() {
+
+		try (CloseableIterator<Jedi> stream = template.query(Person.class).returnResultsAs(Jedi.class).streamAll()) {
+			assertThat(stream).hasOnlyElementsOfType(Jedi.class).hasSize(2);
+		}
+	}
+
+	@Test // DATAMONGO-1563
+	public void streamAllBy() {
+
+		try (CloseableIterator<Person> stream = template.query(Person.class)
+				.streamAllBy(query(where("firstname").is("luke")))) {
+
+			assertThat(stream).containsExactlyInAnyOrder(luke);
+		}
 	}
 
 	@Data

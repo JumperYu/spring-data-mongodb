@@ -347,10 +347,15 @@ public class MongoTemplate implements MongoOperations, ApplicationContextAware, 
 	 */
 	@Override
 	public <T> CloseableIterator<T> stream(final Query query, final Class<T> entityType, final String collectionName) {
+		return doStream(query, entityType, collectionName, entityType);
+	}
+
+	protected <T> CloseableIterator<T> doStream(final Query query, final Class<?> entityType, final String collectionName, Class<T> returnType) {
 
 		Assert.notNull(query, "Query must not be null!");
 		Assert.notNull(entityType, "Entity type must not be null!");
 		Assert.hasText(collectionName, "Collection name must not be null or empty!");
+		Assert.notNull(returnType, "ReturnType must not be null!");
 
 		return execute(collectionName, new CollectionCallback<CloseableIterator<T>>() {
 
@@ -367,7 +372,7 @@ public class MongoTemplate implements MongoOperations, ApplicationContextAware, 
 						.prepare(collection.find(mappedQuery).projection(mappedFields));
 
 				return new CloseableIterableCursorAdapter<T>(cursor, exceptionTranslator,
-						new ReadDocumentCallback<T>(mongoConverter, entityType, collectionName));
+						new ReadDocumentCallback<T>(mongoConverter, returnType, collectionName));
 			}
 		});
 	}

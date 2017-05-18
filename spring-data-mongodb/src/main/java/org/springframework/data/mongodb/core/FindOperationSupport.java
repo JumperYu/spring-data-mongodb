@@ -21,6 +21,7 @@ import java.util.Optional;
 import org.bson.Document;
 import org.springframework.dao.IncorrectResultSizeDataAccessException;
 import org.springframework.data.mongodb.core.query.Query;
+import org.springframework.data.util.CloseableIterator;
 import org.springframework.util.Assert;
 import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
@@ -126,6 +127,13 @@ class FindOperationSupport implements FindOperationBuilder {
 			return template.doFind(
 					StringUtils.hasText(collection) ? collection : template.determineCollectionName(domainType), queryObject,
 					fieldsObject, domainType, returnType, getCursorPreparer(query, preparer));
+		}
+
+		@Override
+		public CloseableIterator<T> streamAllBy(Query query) {
+
+			return template.doStream(query, domainType,
+					StringUtils.hasText(collection) ? collection : template.determineCollectionName(domainType), returnType);
 		}
 
 		private CursorPreparer getCursorPreparer(Query query, CursorPreparer preparer) {

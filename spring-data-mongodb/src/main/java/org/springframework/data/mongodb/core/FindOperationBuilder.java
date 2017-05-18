@@ -34,7 +34,12 @@ package org.springframework.data.mongodb.core;
 import java.util.List;
 import java.util.Optional;
 
+import org.bson.Document;
+import org.springframework.data.mongodb.core.query.BasicQuery;
 import org.springframework.data.mongodb.core.query.Query;
+import org.springframework.data.util.CloseableIterator;
+
+;
 
 /**
  * @author Christoph Strobl
@@ -93,8 +98,34 @@ public interface FindOperationBuilder {
 		 * @return an empty {@link List} if not match found. Never {@literal null}.
 		 */
 		default List<T> findAll() {
-			return findAllBy(null);
+			return findAllBy(new BasicQuery(new Document()));
 		}
+
+		/**
+		 * Executes a findAll backed by a Mongo DB {@link com.mongodb.Cursor}. <br />
+		 *
+		 * @return a {@link CloseableIterator} that wraps the a Mongo DB {@link com.mongodb.Cursor} that needs to be closed.
+		 *         Never {@literal null}.
+		 */
+		default CloseableIterator<T> streamAll() {
+			return streamAllBy(new BasicQuery(new Document()));
+		}
+
+		/**
+		 * Executes the given {@literal query} and returns a {@link CloseableIterator} backed by a Mongo DB
+		 * {@link com.mongodb.Cursor}.
+		 *
+		 * @return a {@link CloseableIterator} that wraps the a Mongo DB {@link com.mongodb.Cursor} that needs to be closed.
+		 *         Never {@literal null}.
+		 */
+		CloseableIterator<T> streamAllBy(Query query);
+
+		// TODO: how about exists(Query query)
+
+		// TODO: how about geoNear(NearQuery query)
+
+		// TODO: how about count() and count(Query query)
+
 	}
 
 	/**
