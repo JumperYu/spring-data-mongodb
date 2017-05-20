@@ -21,6 +21,7 @@ import java.util.Set;
 
 import org.bson.Document;
 import org.springframework.data.geo.GeoResults;
+import org.springframework.data.mongodb.core.AggregateOperationBuilder.AggregationOperation;
 import org.springframework.data.mongodb.core.BulkOperations.BulkMode;
 import org.springframework.data.mongodb.core.FindOperationBuilder.FindOperation;
 import org.springframework.data.mongodb.core.RemoveOperationBuilder.RemoveOperation;
@@ -1127,4 +1128,14 @@ public interface MongoOperations {
 	 * @since 2.0
 	 */
 	<T> RemoveOperation<T> remove(Class<T> removeOperation);
+
+	/**
+	 * Entry point for constructing and executing aggregation operations.
+	 *
+	 * @param domainType must not be {@literal null}.
+	 * @param <T>
+	 * @return new instance of {@link AggregationOperation}.
+	 * @since 2.0
+	 */
+	<T> AggregationOperation<T> aggregateAndReturn(Class<T> domainType);
 }

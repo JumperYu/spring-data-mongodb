@@ -66,6 +66,7 @@ import org.springframework.data.mapping.context.MappingContext;
 import org.springframework.data.mapping.model.ConvertingPropertyAccessor;
 import org.springframework.data.mapping.model.MappingException;
 import org.springframework.data.mongodb.MongoDbFactory;
+import org.springframework.data.mongodb.core.AggregateOperationBuilder.AggregationOperation;
 import org.springframework.data.mongodb.core.BulkOperations.BulkMode;
 import org.springframework.data.mongodb.core.FindOperationBuilder.FindOperation;
 import org.springframework.data.mongodb.core.RemoveOperationBuilder.RemoveOperation;
@@ -350,7 +351,8 @@ public class MongoTemplate implements MongoOperations, ApplicationContextAware, 
 		return doStream(query, entityType, collectionName, entityType);
 	}
 
-	protected <T> CloseableIterator<T> doStream(final Query query, final Class<?> entityType, final String collectionName, Class<T> returnType) {
+	protected <T> CloseableIterator<T> doStream(final Query query, final Class<?> entityType, final String collectionName,
+			Class<T> returnType) {
 
 		Assert.notNull(query, "Query must not be null!");
 		Assert.notNull(entityType, "Entity type must not be null!");
@@ -2740,5 +2742,10 @@ public class MongoTemplate implements MongoOperations, ApplicationContextAware, 
 	@Override
 	public <T> RemoveOperation<T> remove(Class<T> domainType) {
 		return new RemoveOperationSupport(this).remove(domainType);
+	}
+
+	@Override
+	public <T> AggregationOperation<T> aggregateAndReturn(Class<T> domainType) {
+		return new AggregationOperationSupport(this).aggregateAndReturn(domainType);
 	}
 }
