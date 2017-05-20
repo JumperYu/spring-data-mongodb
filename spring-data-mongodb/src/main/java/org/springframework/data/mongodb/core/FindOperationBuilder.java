@@ -35,7 +35,9 @@ import java.util.List;
 import java.util.Optional;
 
 import org.bson.Document;
+import org.springframework.data.geo.GeoResults;
 import org.springframework.data.mongodb.core.query.BasicQuery;
+import org.springframework.data.mongodb.core.query.NearQuery;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.util.CloseableIterator;
 
@@ -120,9 +122,13 @@ public interface FindOperationBuilder {
 		 */
 		CloseableIterator<T> streamAllBy(Query query);
 
-		// TODO: how about exists(Query query)
-
-		// TODO: how about geoNear(NearQuery query)
+		/**
+		 * Executes the given {@literal filter} query and returns the {@link GeoResults} for all matching entities.
+		 *
+		 * @param filter must not be {@literal null}.
+		 * @return
+		 */
+		GeoResults<T> findAllNearBy(NearQuery filter);
 
 		// TODO: how about count() and count(Query query)
 

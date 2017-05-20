@@ -20,6 +20,8 @@ import java.util.Optional;
 
 import org.bson.Document;
 import org.springframework.dao.IncorrectResultSizeDataAccessException;
+import org.springframework.data.geo.GeoResults;
+import org.springframework.data.mongodb.core.query.NearQuery;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.util.CloseableIterator;
 import org.springframework.util.Assert;
@@ -114,30 +116,31 @@ class FindOperationSupport implements FindOperationBuilder {
 			return Optional.of(result.iterator().next());
 		}
 
-		@Override
-		public List<T> findAll() {
-			return findAllBy(null);
-		}
-
 		private List<T> doFind(Query query, CursorPreparer preparer) {
 
 			Document queryObject = query != null ? query.getQueryObject() : new Document();
 			Document fieldsObject = query != null ? query.getFieldsObject() : new Document();
 
-			return template.doFind(
-					StringUtils.hasText(collection) ? collection : template.determineCollectionName(domainType), queryObject,
-					fieldsObject, domainType, returnType, getCursorPreparer(query, preparer));
+			return template.doFind(getCollectionName(), queryObject, fieldsObject, domainType, returnType,
+					getCursorPreparer(query, preparer));
 		}
 
 		@Override
 		public CloseableIterator<T> streamAllBy(Query query) {
+			return template.doStream(query, domainType, getCollectionName(), returnType);
+		}
 
-			return template.doStream(query, domainType,
-					StringUtils.hasText(collection) ? collection : template.determineCollectionName(domainType), returnType);
+		@Override
+		public GeoResults<T> findAllNearBy(NearQuery filter) {
+			return template.geoNear(filter, domainType, getCollectionName(), returnType);
 		}
 
 		private CursorPreparer getCursorPreparer(Query query, CursorPreparer preparer) {
 			return query == null || preparer != null ? preparer : template.new QueryCursorPreparer(query, domainType);
+		}
+
+		private String getCollectionName() {
+			return StringUtils.hasText(collection) ? collection : template.determineCollectionName(domainType);
 		}
 
 		public String asString() {

@@ -652,17 +652,21 @@ public class MongoTemplate implements MongoOperations, ApplicationContextAware, 
 	}
 
 	@SuppressWarnings("unchecked")
-	public <T> GeoResults<T> geoNear(NearQuery near, Class<T> entityClass, String collectionName) {
+	public <T> GeoResults<T> geoNear(NearQuery near, Class<T> domainType, String collectionName) {
+		return geoNear(near, domainType, collectionName, domainType);
+	}
+
+	public <T> GeoResults<T> geoNear(NearQuery near, Class<?> domainType, String collectionName, Class<T> returnType) {
 
 		if (near == null) {
 			throw new InvalidDataAccessApiUsageException("NearQuery must not be null!");
 		}
 
-		if (entityClass == null) {
+		if (domainType == null) {
 			throw new InvalidDataAccessApiUsageException("Entity class must not be null!");
 		}
 
-		String collection = StringUtils.hasText(collectionName) ? collectionName : determineCollectionName(entityClass);
+		String collection = StringUtils.hasText(collectionName) ? collectionName : determineCollectionName(domainType);
 		Document nearDocument = near.toDocument();
 
 		Document command = new Document("geoNear", collection);
@@ -670,12 +674,12 @@ public class MongoTemplate implements MongoOperations, ApplicationContextAware, 
 
 		if (nearDocument.containsKey("query")) {
 			Document query = (Document) nearDocument.get("query");
-			command.put("query", queryMapper.getMappedObject(query, getPersistentEntity(entityClass)));
+			command.put("query", queryMapper.getMappedObject(query, getPersistentEntity(domainType)));
 		}
 
 		if (LOGGER.isDebugEnabled()) {
 			LOGGER.debug("Executing geoNear using: {} for class: {} in collection: {}", serializeToJsonSafely(command),
-					entityClass, collectionName);
+					domainType, collectionName);
 		}
 
 		Document commandResult = executeCommand(command, this.readPreference);
@@ -683,7 +687,7 @@ public class MongoTemplate implements MongoOperations, ApplicationContextAware, 
 		results = results == null ? Collections.emptyList() : results;
 
 		DocumentCallback<GeoResult<T>> callback = new GeoNearResultDocumentCallback<T>(
-				new ReadDocumentCallback<T>(mongoConverter, entityClass, collectionName), near.getMetric());
+				new ReadDocumentCallback<T>(mongoConverter, returnType, collectionName), near.getMetric());
 		List<GeoResult<T>> result = new ArrayList<GeoResult<T>>(results.size());
 
 		int index = 0;
